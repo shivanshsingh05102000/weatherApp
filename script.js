@@ -1,5 +1,7 @@
 const API_KEY = "8cc73129f980ec310558fc9600caefa1";
 
+let currentUnit = "metric";
+
 const searchInput = document.querySelector("input");
 
 const locationText = document.getElementById("location");
@@ -15,35 +17,47 @@ const visibility = document.getElementById("visibility");
 const uv = document.getElementById("uv");
 const dew = document.getElementById("dew");
 
+const cBtn = document.getElementById("celsius");
+const fBtn = document.getElementById("fahrenheit");
+const locationBtn = document.getElementById("use-location");
 
-// 🔹 Step 1: Get basic weather
+
+// 🔹 MAIN WEATHER
 async function getWeather(city) {
-  try {
-    const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
-    );
+  const res = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=${currentUnit}`
+  );
 
-    const data = await res.json();
-    console.log(data);
-    if (data.cod !== 200) {
-      alert("City not found");
-      return;
-    }
-    getForecast(city);
-    updateUI(data);
+  const data = await res.json();
 
-    // 🔥 Step 2: Get lat/lon → call One Call API
-    const { lat, lon } = data.coord;
-    getExtraData(lat, lon);
-
-  } catch (err) {
-    console.log(err);
-    alert("API error");
+  if (data.cod !== 200) {
+    alert("City not found");
+    return;
   }
+
+  updateUI(data);
+  getForecast(city);
+
+  const { lat, lon } = data.coord;
+  getExtraData(lat, lon);
 }
 
 
-// 🔹 Step 2: Get UV + Dew Point
+// 🔹 COORD WEATHER
+async function getWeatherByCoords(lat, lon) {
+  const res = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=${currentUnit}`
+  );
+
+  const data = await res.json();
+
+  updateUI(data);
+  getForecastByCoords(lat, lon);
+  getExtraData(lat, lon);
+}
+
+
+// 🔹 EXTRA
 async function getExtraData(lat, lon) {
   try {
     const res = await fetch(
@@ -51,83 +65,103 @@ async function getExtraData(lat, lon) {
     );
 
     const data = await res.json();
-    console.log(data);
-    if (!data.daily.uv_index_max) throw new Error("Invalid response");
 
-    uv.innerText = data.daily.uv_index_max[0];
+    uv.innerText = data.daily?.uv_index_max?.[0] ?? "N/A";
+    dew.innerText = Math.round(data.hourly?.dew_point_2m?.[0] ?? 0) + "°";
 
-    dew.innerText = Math.round(data.hourly.dew_point_2m[0]) + "°C";
-
-  } catch (err) {
-    console.log(err);
+  } catch {
     uv.innerText = "N/A";
     dew.innerText = "N/A";
   }
 }
 
 
-// 🔹 Update UI
+// 🔹 UI
 function updateUI(data) {
   locationText.innerText = `${data.name}, ${data.sys.country}`;
 
   tempDisplay.innerText = Math.round(data.main.temp) + "°";
-  feelsLike.innerText =
-    "Feels like " + Math.round(data.main.feels_like) + "°";
-
+  feelsLike.innerText = "Feels like " + Math.round(data.main.feels_like) + "°";
   desc.innerText = data.weather[0].description;
 
-  wind.innerText = data.wind.speed + " m/s";
+  wind.innerText =
+    currentUnit === "metric"
+      ? data.wind.speed + " m/s"
+      : data.wind.speed + " mph";
+
   humidity.innerText = data.main.humidity + "%";
   pressure.innerText = data.main.pressure + " hPa";
   visibility.innerText = data.visibility / 1000 + " km";
-
-  // 🔥 Dynamic background
-  const weatherMain = data.weather[0].main.toLowerCase();
-  const img = document.querySelector("img[alt='London']");
-
-  if (weatherMain.includes("cloud")) {
-    img.src =
-      "https://openweathermap.org/img/widget_images/scattered_clouds.jpg";
-  } else if (weatherMain.includes("rain")) {
-    img.src =
-      "https://openweathermap.org/img/widget_images/rain.jpg";
-  } else {
-    img.src =
-      "https://openweathermap.org/img/widget_images/clear_sky.jpg";
-  }
 }
 
 
-// 🔹 Search
-searchInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    const city = searchInput.value.trim();
-    if (!city) return;
-    getWeather(city);
-  }
-});
-
-
+// 🔹 FORECAST
 async function getForecast(city) {
   const res = await fetch(
-    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric`
+    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=${currentUnit}`
   );
 
   const data = await res.json();
 
-  // pick 12:00 data (1 per day)
+  displayHourly(data.list.slice(0, 8));
+
   const daily = data.list.filter(item =>
     item.dt_txt.includes("12:00:00")
   );
 
   displayForecast(daily);
 }
+
+async function getForecastByCoords(lat, lon) {
+  const res = await fetch(
+    `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=${currentUnit}`
+  );
+
+  const data = await res.json();
+
+  displayHourly(data.list.slice(0, 8));
+
+  const daily = data.list.filter(item =>
+    item.dt_txt.includes("12:00:00")
+  );
+
+  displayForecast(daily);
+}
+
+
+// 🔹 HOURLY
+function displayHourly(hours) {
+  const container = document.getElementById("hourly-container");
+  container.innerHTML = "";
+
+  hours.forEach(item => {
+    const time = item.dt_txt.split(" ")[1].slice(0, 5);
+    const temp = Math.round(item.main.temp);
+    const icon = item.weather[0].icon;
+
+    const div = document.createElement("div");
+
+    div.className = "bg-orange-100 rounded-xl p-3 text-center w-20 shrink-0";
+
+    div.innerHTML = `
+      <span class="text-xs block mb-2">${time}</span>
+      <img src="https://openweathermap.org/img/wn/${icon}.png" class="mx-auto w-6"/>
+      <span class="text-lg block">${temp}°</span>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+
+// 🔹 DAILY
 function displayForecast(days) {
   const container = document.getElementById("seven-day");
   container.innerHTML = "";
 
   days.forEach((day, index) => {
     const date = new Date(day.dt_txt);
+
     const dayName =
       index === 0
         ? "Today"
@@ -135,23 +169,19 @@ function displayForecast(days) {
 
     const temp = Math.round(day.main.temp);
     const icon = day.weather[0].icon;
-    const desc = day.weather[0].description;
 
     const btn = document.createElement("button");
 
     btn.className = `
-      h-11 flex items-center justify-center gap-2.5 rounded-xl border border-white/30 
-      cursor-pointer transition-all shrink-0 
-      ${index === 0 ? "bg-orange" : "bg-black/20 hover:bg-black/30"} 
-      w-[125px]
+      h-11 flex items-center justify-center gap-2 rounded-xl
+      ${index === 0 ? "bg-orange-500 text-white" : "bg-black/20 text-white"}
+      w-[120px]
     `;
 
     btn.innerHTML = `
-      <span class="text-base font-medium text-white whitespace-nowrap">${dayName}</span>
-      <span class="text-base font-medium text-white">${temp}<sup>°</sup></span>
-      <img src="https://openweathermap.org/img/wn/${icon}@2x.png" 
-           class="w-6 h-6 object-contain" 
-           alt="${desc}" />
+      <span>${dayName}</span>
+      <span>${temp}°</span>
+      <img src="https://openweathermap.org/img/wn/${icon}.png" class="w-6"/>
     `;
 
     container.appendChild(btn);
@@ -159,5 +189,48 @@ function displayForecast(days) {
 }
 
 
-// 🔹 Default
+// 🔹 SEARCH
+searchInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    const city = searchInput.value.trim();
+    if (city) getWeather(city);
+  }
+});
+
+
+// 🔹 UNIT SWITCH
+cBtn.onclick = () => {
+  currentUnit = "metric";
+  getWeather(searchInput.value || "Delhi");
+};
+
+fBtn.onclick = () => {
+  currentUnit = "imperial";
+  getWeather(searchInput.value || "Delhi");
+};
+
+
+// 🔹 LOCATION
+locationBtn.onclick = () => {
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      getWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
+    },
+    () => alert("Permission denied")
+  );
+};
+const map = L.map("map").setView([28.6139, 77.2090], 5); // Delhi
+
+// Base map
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap",
+}).addTo(map);
+L.tileLayer(
+  `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`,
+  {
+    opacity: 0.6,
+  }
+).addTo(map);
+
+// 🔹 DEFAULT
 getWeather("Delhi");

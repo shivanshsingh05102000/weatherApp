@@ -1,320 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>3D Globe Weather</title>
+  <meta charset="UTF-8" />
+  <title>Weather App</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
-<body class="bg-gray-400 text-white width-full min-h-screen flex items-center justify-center p-10">
-  <div
-    class="w-full mx-auto p-4 bg-transparent max-lg:p-3 max-lg:overflow-x-hidden max-lg:max-w-full p-0 mt-0 w-full max-w-full">
-    <div
-      class="weather-header-container flex justify-between items-center mb-4 gap-8 max-lg:flex-col max-lg:gap-2 max-lg:items-start lg:flex-row lg:gap-4">
-      <div class="flex items-center gap-4 shrink-0">
-        <h1 class="text-2xl font-semibold text-white m-0 max-lg:text-xl">Weather forecast</h1>
-        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full p-1"><button
-            class="px-3 py-1.5 rounded-full text-sm font-medium transition-all text-white hover:bg-white/20">°C</button><button
-            class="px-3 py-1.5 rounded-full text-sm font-medium transition-all bg-white text-[#48484a] shadow-sm">°F</button>
-        </div>
-      </div>
-      <div
-        class="flex items-center gap-8 flex-1 justify-end max-lg:w-full max-lg:flex-col max-lg:items-stretch max-lg:gap-3">
-        <div class="flex items-center gap-2 shrink-0 max-lg:w-full"><span
-            class="w-6 h-6 flex items-center justify-center text-base"><img alt="Location" loading="lazy" width="24"
-              height="24" decoding="async" data-nimg="1" class="shrink-0"
-              src="https://openweathermap.org/img/widget_icons/pin-outline.svg" style="color: transparent;"></span>
-              <span id="location" class="text-base font-normal text-white whitespace-nowrap max-lg:text-sm">London, GB</span></div>
-        <div class="shrink-0 max-lg:w-full">
-          <div class="relative w-full lg:w-[393px] h-11">
-            <div class="relative flex items-center w-full h-full">
-              <div class="absolute left-3 w-6 h-6 z-10 pointer-events-none flex items-center justify-center"><svg
-                  width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z"
-                    stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg></div><input
-                class="w-full h-full py-[11px] px-3 pl-11 border-none rounded-xl text-sm transition-all bg-[#f5f5f0] text-black placeholder:text-black placeholder:font-normal focus:outline-none focus:bg-[#f5f5f0]"
-                placeholder="Search City" type="text" value="">
-            </div>
-          </div>
-        </div>
+<body class="bg-gray-400 text-white w-full min-h-screen flex items-center justify-center p-6">
+
+<div class="w-full max-w-6xl mx-auto">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-semibold">Weather forecast</h1>
+
+      <div class="flex bg-white/10 rounded-full p-1">
+        <button id="celsius" class="px-3 py-1.5 rounded-full text-sm bg-white text-black">°C</button>
+        <button id="fahrenheit" class="px-3 py-1.5 rounded-full text-sm">°F</button>
       </div>
     </div>
-    <div class="weather-daily-tabs-container">
-      <div class="w-full max-lg:w-[calc(100vw-24px)] mb-2.5">
-        <div
-          class="weather-scrollable overflow-x-auto overflow-y-hidden w-full min-w-0 scrollbar-thin scrollbar-thumb-stone-400/30 scrollbar-track-transparent [&amp;::-webkit-scrollbar]:h-1.5 [&amp;::-webkit-scrollbar-track]:bg-transparent [&amp;::-webkit-scrollbar-thumb]:bg-stone-400/30 [&amp;::-webkit-scrollbar-thumb]:rounded"
-          style="touch-action: pan-x;">
-          <div id="seven-day" class="flex items-center gap-2.5 flex-nowrap min-w-max px-1 pb-0"><button
-              class="h-11 flex items-center justify-center gap-2.5 rounded-xl border border-white/30 cursor-pointer transition-all shrink-0 max-lg:w-[100px] max-lg:h-10 max-lg:gap-1 max-lg:px-1.5 bg-orange hover:bg-orange/80 border-white/30 outline outline-white/30 -outline-offset-1 w-[145px]"><span
-                class="text-base font-medium text-white max-lg:text-sm whitespace-nowrap">Today</span><span
-                class="text-base font-medium text-white max-lg:text-sm">51<sup
-                  class="text-base max-lg:text-sm">°</sup></span><img alt="few clouds" loading="lazy" width="28"
-                height="28" decoding="async" data-nimg="1" class="object-contain max-lg:w-5 max-lg:h-5"
-                src="https://openweathermap.org/weather-icons/fill/partly-cloudy-day.svg"
-                style="color: transparent;"></button><button
-              class="h-11 flex items-center justify-center gap-2.5 rounded-xl border border-white/30 cursor-pointer transition-all shrink-0 max-lg:w-[100px] max-lg:h-10 max-lg:gap-1 max-lg:px-1.5 bg-black/20 hover:bg-black/30 w-[125px]"><span
-                class="text-base font-medium text-white max-lg:text-sm whitespace-nowrap">Fri</span><span
-                class="text-base font-medium text-white max-lg:text-sm">53<sup
-                  class="text-base max-lg:text-sm">°</sup></span><img alt="moderate rain" loading="lazy" width="28"
-                height="28" decoding="async" data-nimg="1" class="object-contain max-lg:w-5 max-lg:h-5"
-                src="https://openweathermap.org/weather-icons/fill/partly-cloudy-day-rain.svg"
-                style="color: transparent;"></button>
-          </div>
-        </div>
+
+    <div class="flex items-center gap-4 flex-wrap">
+      <div class="flex items-center gap-2">
+        <img src="https://openweathermap.org/img/widget_icons/pin-outline.svg" class="w-5">
+        <span id="location">--</span>
       </div>
-    </div>
-    <div
-      class="weather-forecast-container flex gap-3 items-start max-lg:flex-col max-lg:gap-4 mb-4 min-w-0 max-lg:w-full max-lg:overflow-x-hidden">
-      <div
-        class="weather-current-weather max-lg:w-full lg:shrink-0 flex flex-col gap-3 bg-white rounded-3xl p-3.5 max-lg:h-auto max-lg:min-h-0 max-lg:p-3 max-lg:min-w-0">
-        <div class="w-full h-auto">
-          <div
-            class="relative w-full lg:max-w-[332px] h-[250px] max-lg:h-[200px] overflow-hidden bg-[#FAF7F4] rounded-xl">
-            <img alt="London" loading="lazy" decoding="async" data-nimg="fill" class="object-cover z-0"
-              src="https://openweathermap.org/img/widget_images/scattered_clouds.jpg"
-              style="position: absolute; height: 100%; width: 100%; inset: 0px; color: transparent;">
-            <div class="absolute inset-0 bg-linear-to-b from-transparent to-black/50 z-10"></div>
-            <div class="relative z-20 p-3.5 h-full flex flex-col justify-between text-white max-lg:p-3">
-              <div class="flex justify-between items-start gap-2 flex-wrap pt-2.5">
-                <div class="flex items-center gap-2 flex-wrap justify-end min-w-0 ml-auto">
-                  <div class="font-medium text-white text-right wrap-break-word text-sm">1:27 AM</div>
-                </div>
-              </div>
-              <div class="flex justify-between items-end mt-auto">
-                <div id="temp" class="font-normal leading-none text-white text-[56px]">--<span
-                    class="align-baseline text-[56px]">°</span></div>
-                <div class="flex flex-col items-start text-left">
-                  <div id="desc" class="font-medium capitalize text-white text-lg">--</div>
-                  <div id="feels" class="font-medium text-white/90 mt-1 text-base">Feels like --°</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-1 w-full max-lg:gap-1.5 max-lg:justify-between">
-          <div
-            class="w-[108px] h-[70px] bg-light-orange rounded-xl p-3.5 flex flex-col justify-center items-center gap-1 max-lg:w-[calc(33.333%-4px)] max-lg:min-w-0 max-lg:h-[60px] max-lg:py-1.5 max-lg:px-1.5 overflow-hidden">
-            <div class="flex items-center gap-1 justify-center"><img alt="Wind" loading="lazy" width="16" height="16"
-                decoding="async" data-nimg="1" class="object-contain max-lg:w-4 max-lg:h-4"
-                src="https://openweathermap.org/img/widget_icons/wind.svg" style="color: transparent;"><span
-                class="text-xs font-medium text-[#78716c] text-center leading-4 max-lg:text-[10px]">Wind</span></div>
-            <span id="wind"
-              class="text-xs font-medium text-[#0c4a6e] text-center leading-4 max-lg:text-[10px] w-full min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">--</span>
-          </div>
-          <div
-            class="w-[108px] h-[70px] bg-light-orange rounded-xl p-3.5 flex flex-col justify-center items-center gap-1 max-lg:w-[calc(33.333%-4px)] max-lg:min-w-0 max-lg:h-[60px] max-lg:py-1.5 max-lg:px-1.5 overflow-hidden">
-            <div class="flex items-center gap-1 justify-center"><img alt="Humidity" loading="lazy" width="16"
-                height="16" decoding="async" data-nimg="1" class="object-contain max-lg:w-4 max-lg:h-4"
-                src="https://openweathermap.org/img/widget_icons/humidity-low.svg" style="color: transparent;"><span
-                class="text-xs font-medium text-[#78716c] text-center leading-4 max-lg:text-[10px]">Humidity</span>
-            </div><span id="humidity"
-              class="text-xs font-medium text-[#0c4a6e] text-center leading-4 max-lg:text-[10px] w-full min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">--%</span>
-          </div>
-          <div
-            class="w-[108px] h-[70px] bg-light-orange rounded-xl p-3.5 flex flex-col justify-center items-center gap-1 max-lg:w-[calc(33.333%-4px)] max-lg:min-w-0 max-lg:h-[60px] max-lg:py-1.5 max-lg:px-1.5 overflow-hidden">
-            <div class="flex items-center gap-1 justify-center"><img alt="Visibility" loading="lazy" width="16"
-                height="16" decoding="async" data-nimg="1" class="object-contain max-lg:w-4 max-lg:h-4"
-                src="https://openweathermap.org/img/widget_icons/visibility-outline.svg"
-                style="color: transparent;"><span
-                class="text-xs font-medium text-[#78716c] text-center leading-4 max-lg:text-[10px]">Visibility</span>
-            </div><span id="visibility" 
-              class="text-xs font-medium text-[#0c4a6e] text-center leading-4 max-lg:text-[10px] w-full min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">--</span>
-          </div>
-          <div
-            class="w-[108px] h-[70px] bg-light-orange rounded-xl p-3.5 flex flex-col justify-center items-center gap-1 max-lg:w-[calc(33.333%-4px)] max-lg:min-w-0 max-lg:h-[60px] max-lg:py-1.5 max-lg:px-1.5 overflow-hidden">
-            <div class="flex items-center gap-1 justify-center"><img alt="Pressure" loading="lazy" width="16"
-                height="16" decoding="async" data-nimg="1" class="object-contain max-lg:w-4 max-lg:h-4"
-                src="https://openweathermap.org/img/widget_icons/pressure.svg" style="color: transparent;"><span
-                class="text-xs font-medium text-[#78716c] text-center leading-4 max-lg:text-[10px]">Pressure</span>
-            </div><span id="pressure"
-              class="text-xs font-medium text-[#0c4a6e] text-center leading-4 max-lg:text-[10px] w-full min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">--</span>
-          </div>
-          <div
-            class="w-[108px] h-[70px] bg-light-orange rounded-xl p-3.5 flex flex-col justify-center items-center gap-1 max-lg:w-[calc(33.333%-4px)] max-lg:min-w-0 max-lg:h-[60px] max-lg:py-1.5 max-lg:px-1.5 overflow-hidden">
-            <div class="flex items-center gap-1 justify-center"><img alt="UV Index" loading="lazy" width="16"
-                height="16" decoding="async" data-nimg="1" class="object-contain max-lg:w-4 max-lg:h-4"
-                src="https://openweathermap.org/img/widget_icons/sun.svg" style="color: transparent;"><span
-                class="text-xs font-medium text-[#78716c] text-center leading-4 max-lg:text-[10px]">UV Index</span>
-            </div><span id="uv" 
-              class="text-xs font-medium text-[#0c4a6e] text-center leading-4 max-lg:text-[10px] w-full min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">--</span>
-          </div>
-          <div
-            class="w-[108px] h-[70px] bg-light-orange rounded-xl p-3.5 flex flex-col justify-center items-center gap-1 max-lg:w-[calc(33.333%-4px)] max-lg:min-w-0 max-lg:h-[60px] max-lg:py-1.5 max-lg:px-1.5 overflow-hidden">
-            <div class="flex items-center gap-1 justify-center"><img alt="Dew Point" loading="lazy" width="16"
-                height="16" decoding="async" data-nimg="1" class="object-contain max-lg:w-4 max-lg:h-4"
-                src="https://openweathermap.org/img/widget_icons/humidity-low.svg" style="color: transparent;"><span
-                class="text-xs font-medium text-[#78716c] text-center leading-4 max-lg:text-[10px]">Dew Point</span>
-            </div><span id="dew"
-              class="text-xs font-medium text-[#0c4a6e] text-center leading-4 max-lg:text-[10px] w-full min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">--</span>
-          </div>
-        </div>
-      </div>
-      <div
-        class="weather-hourly-chart max-lg:w-full lg:min-w-0 flex flex-col max-lg:h-auto max-lg:min-h-0 max-lg:min-w-0 max-lg:overflow-x-hidden">
-        <div
-          class="weather-hourly-chart w-full h-full bg-background rounded-3xl p-3.5 flex flex-col gap-0 max-lg:p-3 max-lg:min-h-0 max-lg:min-w-0 max-lg:h-auto max-lg:max-h-none max-lg:w-[calc(100vw-24px)]">
-          <h2 class="text-lg font-semibold text-black m-0 mb-3 max-lg:text-base shrink-0">Hourly forecast</h2>
-          <div
-            class="weather-hourly-chart-scroll-container weather-scrollable h-[211px] relative bg-background rounded-xl border border-black/10 overflow-x-auto overflow-y-hidden max-lg:h-[140px] max-lg:min-w-0 max-lg:w-full [&amp;::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div
-              class="weather-hourly-chart-container weather-hourly-chart-container-chart max-lg:min-w-0 rounded-xl overflow-hidden"
-              style="width: 1824px;">
-              <div class="weather-hourly-chart-inner"><canvas role="img" height="211" width="1824"
-                  style="display: block; box-sizing: border-box; height: 211px; width: 1824px;"></canvas></div>
-            </div>
-          </div>
-          <div
-            class="weather-hourly-chart-scroll-container weather-scrollable overflow-x-auto overflow-y-hidden pb-2 max-lg:min-w-0 max-lg:w-full max-lg:pb-1 scrollbar-thin scrollbar-thumb-stone-400/30 scrollbar-track-transparent [&amp;::-webkit-scrollbar]:h-1.5 [&amp;::-webkit-scrollbar-track]:bg-transparent [&amp;::-webkit-scrollbar-thumb]:bg-stone-400/30 [&amp;::-webkit-scrollbar-thumb]:rounded [touch-action:pan-x]">
-            <div class="weather-hourly-chart-container" style="width: 1824px;">
-              <div class="weather-hourly-chart-inner flex justify-start items-center gap-1">
-                <div
-                  class="w-[72px] h-36 py-3 px-4 bg-light-orange rounded-xl flex flex-col justify-between items-center shrink-0 max-lg:h-28 max-lg:py-1.5 max-lg:px-1.5">
-                  <span
-                    class="mb-[18px] pt-3 text-sm font-medium text-black text-center leading-4 max-lg:text-[10px] max-lg:leading-3 whitespace-nowrap">1
-                    a.m</span>
-                  <div class="flex flex-col items-center flex-1 justify-center"><img alt="scattered clouds"
-                      loading="lazy" width="25" height="25" decoding="async" data-nimg="1"
-                      class="object-contain rounded"
-                      src="https://openweathermap.org/weather-icons/fill/partly-cloudy-night.svg"
-                      style="color: transparent;"><span
-                      class="text-sm font-medium text-black text-center leading-5 max-lg:text-[10px] max-lg:leading-3">0%</span>
-                  </div><span class="text-[22px] font-normal text-black text-center max-lg:text-sm">39°</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="weather-map-container w-full relative mb-4 max-lg:mb-4">
-      <div class="w-full h-full min-h-[434px] max-lg:min-h-[450px]">
-        <div class="w-full h-full bg-[#f5f5f0] rounded-3xl overflow-hidden relative maplibregl-map"
-          style="height: 434px;">
-          <div
-            class="maplibregl-canvas-container maplibregl-interactive maplibregl-touch-drag-pan maplibregl-touch-zoom-rotate">
-            <canvas class="maplibregl-canvas" tabindex="0" aria-label="Map" role="region" width="1080" height="434"
-              style="width: 1080px; height: 434px;"></canvas>
-            <div
-              class="relative group flex flex-col items-center cursor-pointer maplibregl-marker maplibregl-marker-anchor-center"
-              style="cursor: move; z-index: 1; pointer-events: auto; transform: translate(-50%, -50%) translate(1006px, 247px) rotateX(0deg) rotateZ(0deg);">
-              <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
-                <div
-                  class="bg-white text-black text-xs px-2 py-1 rounded-md shadow-lg border border-gray-200 whitespace-nowrap max-w-32 truncate">
-                  London</div>
-              </div>
-              <div class="relative flex size-8 items-center justify-center rounded-full">
-                <div title="London" class="relative rounded-full flex justify-center items-center bg-[#eb6e4b] size-5">
-                  <span
-                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#eb6e4b]/40"></span><span
-                    class="flex justify-center items-center bg-white rounded-full size-3"><span
-                      class="size-2 bg-[#eb6e4b] rounded-full"></span></span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="maplibregl-control-container">
-            <div class="maplibregl-ctrl-top-left "></div>
-            <div class="maplibregl-ctrl-top-right "></div>
-            <div class="maplibregl-ctrl-bottom-left "></div>
-            <div class="maplibregl-ctrl-bottom-right ">
-              <details class="maplibregl-ctrl maplibregl-ctrl-attrib" open="">
-                <summary class="maplibregl-ctrl-attrib-button" title="Toggle attribution"
-                  aria-label="Toggle attribution"></summary>
-                <div class="maplibregl-ctrl-attrib-inner"><a href="https://openfreemap.org"
-                    target="_blank">OpenFreeMap</a> <a href="https://www.openmaptiles.org/" target="_blank">©
-                    OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright"
-                    target="_blank">OpenStreetMap</a></div>
-              </details>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="absolute left-0 bottom-0 z-10 pl-[14px] pb-[14px] pr-[14px] max-lg:left-0 max-lg:right-0 max-lg:bottom-0 pointer-events-none">
-        <div class="pointer-events-auto">
-          <div
-            class="pl-3.5 pr-6 py-3.5 bg-stone-100 rounded-lg outline-1 -outline-offset-1 outline-black/10 flex flex-col gap-2.5 overflow-hidden max-w-full lg:max-w-[737px] max-lg:p-3 h-[151px] max-lg:h-auto">
-            <div class="flex items-center gap-8 max-lg:flex-col max-lg:gap-3">
-              <div class="w-full lg:w-[569px] flex flex-col gap-4 max-lg:min-w-0">
-                <div class="text-black text-lg font-semibold max-lg:text-base">Minute forecast - precipitation</div>
-                <div class="flex flex-col items-center gap-[8px] max-lg:w-full">
-                  <div
-                    class="flex items-center gap-[31px] max-lg:gap-4 max-lg:overflow-x-scroll max-lg:w-full max-lg:pb-2 max-lg:scrollbar-thin max-lg:scrollbar-thumb-stone-400/30 max-lg:scrollbar-track-transparent max-lg:[&amp;::-webkit-scrollbar]:h-1.5 max-lg:[&amp;::-webkit-scrollbar-track]:bg-transparent max-lg:[&amp;::-webkit-scrollbar-thumb]:bg-stone-400/30 max-lg:[&amp;::-webkit-scrollbar-thumb]:rounded max-lg:[&amp;::-webkit-scrollbar]:block [touch-action:pan-x]">
-                    <div
-                      class="px-3 py-2 bg-[#F8EDE1] rounded-xl flex flex-col items-center gap-0.5 shrink-0 max-lg:px-2 max-lg:py-1.5">
-                      <div class="text-stone-400 text-[10px] font-medium text-center leading-3">Now</div>
-                      <div class="text-cyan-950 text-sm font-medium text-center leading-5 max-lg:text-xs">01:27 AM</div>
-                    </div>
-                    <div
-                      class="px-3 py-2 bg-[#F8EDE1] rounded-xl flex flex-col items-center gap-0.5 shrink-0 max-lg:px-2 max-lg:py-1.5">
-                      <div class="text-stone-400 text-[10px] font-medium text-center leading-3">15 min</div>
-                      <div class="text-cyan-950 text-sm font-medium text-center leading-5 max-lg:text-xs">01:42 AM</div>
-                    </div>
-                    <div
-                      class="px-3 py-2 bg-[#F8EDE1] rounded-xl flex flex-col items-center gap-0.5 shrink-0 max-lg:px-2 max-lg:py-1.5">
-                      <div class="text-stone-400 text-[10px] font-medium text-center leading-3">30 min</div>
-                      <div class="text-cyan-950 text-sm font-medium text-center leading-5 max-lg:text-xs">01:57 AM</div>
-                    </div>
-                    <div
-                      class="px-3 py-2 bg-[#F8EDE1] rounded-xl flex flex-col items-center gap-0.5 shrink-0 max-lg:px-2 max-lg:py-1.5">
-                      <div class="text-stone-400 text-[10px] font-medium text-center leading-3">45 min</div>
-                      <div class="text-cyan-950 text-sm font-medium text-center leading-5 max-lg:text-xs">02:12 AM</div>
-                    </div>
-                    <div
-                      class="px-3 py-2 bg-[#F8EDE1] rounded-xl flex flex-col items-center gap-0.5 shrink-0 max-lg:px-2 max-lg:py-1.5">
-                      <div class="text-stone-400 text-[10px] font-medium text-center leading-3">60 min</div>
-                      <div class="text-cyan-950 text-sm font-medium text-center leading-5 max-lg:text-xs">02:27 AM</div>
-                    </div>
-                  </div>
-                  <div
-                    class="flex items-end gap-1 max-md:h-10 max-md:overflow-x-scroll max-md:w-full max-md:pb-2 max-md:scrollbar-thin max-md:scrollbar-thumb-stone-400/30 max-md:scrollbar-track-transparent max-md:[&amp;::-webkit-scrollbar]:h-1.5 max-md:[&amp;::-webkit-scrollbar-track]:bg-transparent max-md:[&amp;::-webkit-scrollbar-thumb]:bg-stone-400/30 max-md:[&amp;::-webkit-scrollbar-thumb]:rounded max-md:[&amp;::-webkit-scrollbar]:block">
-                    <div class="w-1 rounded transition-opacity cursor-pointer hover:opacity-80 shrink-0"
-                      title="No precipitation at 23 min" style="height: 20px; background-color: rgba(0, 0, 0, 0.15);">
-                    </div>
-                    <div class="w-1 rounded transition-opacity cursor-pointer hover:opacity-80 shrink-0"
-                      title="No precipitation at 24 min" style="height: 12px; background-color: rgba(0, 0, 0, 0.15);">
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class=" flex flex-col gap-2 max-lg:flex-row max-lg:w-full justify-start lg:justify-around max-lg:flex-wrap max-lg:gap-2">
-                <div class="flex items-center  gap-3 max-lg:gap-2">
-                  <div class="w-6 h-6 rounded max-lg:w-4 max-lg:h-4 shrink-0"
-                    style="background-color: rgb(22, 163, 74);"></div>
-                  <div class="text-black text-xs font-medium leading-4 max-lg:text-[10px] whitespace-nowrap">0-0.020in/h
-                  </div>
-                </div>
-                <div class="flex items-center  gap-3 max-lg:gap-2">
-                  <div class="w-6 h-6 rounded max-lg:w-4 max-lg:h-4 shrink-0"
-                    style="background-color: rgb(22, 101, 52);"></div>
-                  <div class="text-black text-xs font-medium leading-4 max-lg:text-[10px] whitespace-nowrap">
-                    0.020-0.098in/h</div>
-                </div>
-                <div class="flex items-center  gap-3 max-lg:gap-2">
-                  <div class="w-6 h-6 rounded max-lg:w-4 max-lg:h-4 shrink-0"
-                    style="background-color: rgb(250, 204, 21);"></div>
-                  <div class="text-black text-xs font-medium leading-4 max-lg:text-[10px] whitespace-nowrap">
-                    0.098-0.30in/h</div>
-                </div>
-                <div class="flex items-center  gap-3 max-lg:gap-2">
-                  <div class="w-6 h-6 rounded max-lg:w-4 max-lg:h-4 shrink-0"
-                    style="background-color: rgb(225, 29, 72);"></div>
-                  <div class="text-black text-xs font-medium leading-4 max-lg:text-[10px] whitespace-nowrap">0.30+in/h
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
+      <input type="text" placeholder="Search City"
+        class="px-4 py-2 rounded-lg text-black outline-none" />
     </div>
   </div>
-  <script src="script.js"></script>
 
+  <!-- 7 DAY -->
+  <div class="mb-4 overflow-x-auto">
+    <div id="seven-day" class="flex gap-3 min-w-max"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="grid lg:grid-cols-3 gap-4">
+
+    <!-- CURRENT -->
+    <div class="bg-white text-black rounded-2xl p-4 flex flex-col gap-4">
+
+      <div class="relative h-48 rounded-xl overflow-hidden">
+        <img id="weather-bg"
+          src="https://openweathermap.org/img/widget_images/scattered_clouds.jpg"
+          class="absolute w-full h-full object-cover">
+
+        <div class="absolute inset-0 bg-black/40"></div>
+
+        <div class="relative h-full flex flex-col justify-between p-4 text-white">
+          <div class="text-right text-sm">Live</div>
+
+          <div class="flex justify-between items-end">
+            <div id="temp" class="text-5xl">--°</div>
+
+            <div>
+              <div id="desc" class="text-lg">--</div>
+              <div id="feels" class="text-sm">Feels like --°</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-orange-100 rounded-xl p-2 text-center">
+          <div class="text-xs text-gray-600">Wind</div>
+          <div id="wind">--</div>
+        </div>
+
+        <div class="bg-orange-100 rounded-xl p-2 text-center">
+          <div class="text-xs text-gray-600">Humidity</div>
+          <div id="humidity">--%</div>
+        </div>
+
+        <div class="bg-orange-100 rounded-xl p-2 text-center">
+          <div class="text-xs text-gray-600">Visibility</div>
+          <div id="visibility">--</div>
+        </div>
+
+        <div class="bg-orange-100 rounded-xl p-2 text-center">
+          <div class="text-xs text-gray-600">Pressure</div>
+          <div id="pressure">--</div>
+        </div>
+
+        <div class="bg-orange-100 rounded-xl p-2 text-center">
+          <div class="text-xs text-gray-600">UV</div>
+          <div id="uv">--</div>
+        </div>
+
+        <div class="bg-orange-100 rounded-xl p-2 text-center">
+          <div class="text-xs text-gray-600">Dew</div>
+          <div id="dew">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOURLY -->
+    <div class="lg:col-span-2 bg-gray-100 text-black rounded-2xl p-4">
+
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Hourly forecast</h2>
+
+        <button id="use-location"
+          class="bg-orange-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-orange-600">
+          Use Location
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <div id="hourly-container" class="flex gap-3 min-w-max"></div>
+      </div>
+
+    </div>
+
+  </div>
+  <div class="absolute bottom-4 left-4 bg-white text-black p-4 rounded-xl shadow-lg w-[320px]">
+  <h3 class="font-semibold mb-2">Minute forecast - precipitation</h3>
+
+  <div class="flex gap-2 text-sm">
+    <div class="bg-gray-100 px-3 py-2 rounded-lg">
+      <div>Now</div>
+      <div>08:04</div>
+    </div>
+
+    <div class="bg-gray-100 px-3 py-2 rounded-lg">
+      <div>15 min</div>
+      <div>08:19</div>
+    </div>
+  </div>
+</div>
+  <div id="map" class="h-[300px] rounded-2xl overflow-hidden"></div>
+</div>
+
+<script src="script.js"></script>
 </body>
-
 </html>
