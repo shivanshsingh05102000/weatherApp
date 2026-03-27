@@ -33,7 +33,7 @@ function showError(msg) {
 
 // ================= RECENT SEARCH =================
 function saveRecent(city) {
-  city = city.toLowerCase().trim(); // 🔥 normalize
+  city = city.toLowerCase().trim();
 
   let cities = JSON.parse(localStorage.getItem("recentCities")) || [];
 
@@ -61,8 +61,7 @@ function renderDropdown() {
     const div = document.createElement("div");
     div.className = "p-2 hover:bg-gray-200 cursor-pointer transition";
 
-    div.innerText =
-      city.charAt(0).toUpperCase() + city.slice(1);
+    div.innerText = city.charAt(0).toUpperCase() + city.slice(1);
 
     div.onclick = () => {
       searchInput.value = city;
@@ -161,7 +160,6 @@ function updateUI(data) {
   pressure.innerText = data.main.pressure + " hPa";
   visibility.innerText = (data.visibility / 1000).toFixed(1) + " km";
 
-  // 🔥 FIXED ALERT (C + F safe)
   let tempC =
     currentUnit === "metric"
       ? data.main.temp
@@ -171,7 +169,7 @@ function updateUI(data) {
     showError("🔥 Extreme heat alert (>40°C)");
   }
 
-  // 🌧️ Dynamic background
+  // Dynamic background
   const bg = document.getElementById("weather-bg");
   const condition = data.weather[0].main.toLowerCase();
   if (condition.includes("rain")) {
@@ -238,6 +236,70 @@ function displayHourly(hours) {
     `;
 
     container.appendChild(div);
+  });
+
+  drawTempChart(hours);
+}
+
+// ================= TEMP CHART =================
+function drawTempChart(hours) {
+  const canvas = document.getElementById("temp-chart");
+  const ctx = canvas.getContext("2d");
+
+  const labels = hours.map(h => h.dt_txt.split(" ")[1].slice(0, 5));
+  const temps = hours.map(h => Math.round(h.main.temp));
+
+  if (window._tempChart) window._tempChart.destroy();
+
+  window._tempChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: currentUnit === "metric" ? "Temp (°C)" : "Temp (°F)",
+        data: temps,
+        borderColor: "#f97316",
+        backgroundColor: "rgba(249,115,22,0.12)",
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: "#f97316",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y}°`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            font: { size: 11 },
+            color: "#6b7280",
+            autoSkip: false,
+            maxRotation: 0
+          },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            font: { size: 11 },
+            color: "#6b7280",
+            callback: v => v + "°"
+          },
+          grid: { color: "rgba(0,0,0,0.05)" }
+        }
+      }
+    }
   });
 }
 
@@ -396,10 +458,8 @@ searchInput.addEventListener("keydown", e => {
 
 searchInput.addEventListener("focus", renderDropdown);
 
-// 🔥 NEW: show dropdown while typing
 searchInput.addEventListener("input", renderDropdown);
 
-// 🔥 NEW: hide dropdown on outside click
 document.addEventListener("click", (e) => {
   const dropdown = document.getElementById("recent-dropdown");
 

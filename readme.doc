@@ -1,0 +1,46 @@
+
+A clean and interactive weather application
+
+ Features
+* Search weather by city
+* Get weather using current location
+* Interactive map with live weather markers
+* Toggle between Celsius & Fahrenheit
+* Hourly forecast (next 24 hours)
+* 5-day forecast with selectable days
+* Recently searched cities (saved in localStorage)
+* Dynamic background based on weather
+* Extreme heat alert (>40°C)
+
+---
+
+## Tech Stack
+
+* HTML
+* Tailwind CSS
+* JavaScript (Vanilla)
+* OpenWeatherMap API
+
+---
+
+# Setup Instructions
+
+1. Clone the repo:
+
+2. Open `index.html` in your browser
+
+3. Replace API key in JS:
+
+## API Used
+
+* Current Weather:
+
+```
+https://api.openweathermap.org/data/2.5/weather
+```
+
+* 5 Day / 3 Hour Forecast:
+
+```
+https://api.openweathermap.org/data/2.5/forecast
+```
