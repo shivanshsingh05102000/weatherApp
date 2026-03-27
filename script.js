@@ -174,7 +174,6 @@ function updateUI(data) {
   // 🌧️ Dynamic background
   const bg = document.getElementById("weather-bg");
   const condition = data.weather[0].main.toLowerCase();
-
   if (condition.includes("rain")) {
     bg.src = "https://openweathermap.org/img/widget_images/rain.jpg";
   } else if (condition.includes("cloud")) {
